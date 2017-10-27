@@ -5,6 +5,8 @@ import json
 import os
 
 from user import User
+from anime_standalone import get_anime
+from kanc_ship import get_ship, strongest_by_class
 
 TOKEN = '455027497:AAHFoH9rc8sSoRqVd5PqzKqBhpAMT7H9tDQ'
 
@@ -63,6 +65,8 @@ def pidor(message):
 def add_mal(message):
     for user in users:
         if str(user) == str(message.chat.id):
+            if not user.mal == None:
+                bot.send_message(message.chat.id, 'Текущий логин - ' + user.mal)
             sent = bot.send_message(message.chat.id, 'Логин?')
             bot.register_next_step_handler(sent, reg_mal)
             return
@@ -93,49 +97,10 @@ def show_list(message):
                 return
             
             bot.send_message(message.chat.id, 'Работает папсназ')
-            par = {'u' : user.mal, 'status' : 'all', 'type' : 'anime'}
-            r = requests.get('http://myanimelist.net/malappinfo.php', params=par)
-            
-            #Check for 404 error, it shouldn't happen after all, but still
-            if r.status_code == 404:
-                error_message(message)
-                return
 
-            import xmltodict
-            import datetime
-            import math
-            doc = xmltodict.parse(r.text)['myanimelist']
+            for i in get_anime(user.mal):
+                bot.send_message(message.chat.id, i)
 
-            for value in doc['anime']:
-                if value['my_status'] == '1':
-                    msg = ''
-                    msg += value['series_title'] + " - " + value['my_watched_episodes'] + ' серий.\n'
-
-                    date_diff = datetime.date.today() - datetime.datetime.strptime(value['series_start'], '%Y-%m-%d').date()
-                    all_eps = date_diff.days / 7 + 1
-                    all_eps = math.floor(all_eps)
-                    
-                    total_eps = int(value['series_episodes'])
-                    if all_eps > total_eps and not total_eps == 0:
-                        all_eps = total_eps
-
-                    eps_not_watched = 0
-                    if not int(value['my_watched_episodes']) == all_eps:
-                        eps_not_watched = all_eps - int(value['my_watched_episodes'])
-
-                    if not eps_not_watched == 0:
-                        msg += str(eps_not_watched) + ' не отсмотрено.\n'
-
-                    if int(value['series_status']) == 1:
-                        i = 0
-                        while i - date_diff.days < 0:
-                            i += 7
-
-                        msg += 'Новая серия через ' + str(i-date_diff.days) + ' дней.'
-
-                    msg += '\n'
-
-                    bot.send_message(message.chat.id, msg)
             return
 
     start(message)
@@ -161,4 +126,23 @@ for f in files:
         data = json.load(file)
         users.append(User(data['name'], str(f).rsplit('.', 1)[0], data['mal']))
             
+
+@bot.message_handler(commands=['get_ship'])
+def ship(message):
+    sent = bot.send_message(message.chat.id, "Ship name?")
+    bot.register_next_step_handler(sent, ship_data)
+
+def ship_data(message):
+    for i in get_ship(message.text):
+        bot.send_message(message.chat.id, i)
+
+
+@bot.message_handler(commands=['get_strongest_ship'])
+def ship(message):
+    sent = bot.send_message(message.chat.id, "Ship class?")
+    bot.register_next_step_handler(sent, ship_strongest)
+
+def ship_strongest(message):
+    bot.send_message(message.chat.id, strongest_by_class(message.text))
+
 bot.polling()
