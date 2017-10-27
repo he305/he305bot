@@ -8,7 +8,7 @@ from user import User
 from anime_standalone import get_anime
 from kanc_ship import get_ship, strongest_by_class
 
-TOKEN = '455027497:AAHFoH9rc8sSoRqVd5PqzKqBhpAMT7H9tDQ'
+TOKEN = ''
 
 bot = telebot.TeleBot(TOKEN)
 users = []
