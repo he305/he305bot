@@ -1,0 +1,2 @@
+node anime.js
+PAUSE
