@@ -50,6 +50,7 @@ module.exports = {
                                 if (anime['series_status'][0] == '2') {
                                     all_eps = parseInt(anime['series_episodes'][0]);
                                 }
+                                
 
                                 if (parseInt(anime['my_watched_episodes'][0]) != all_eps) {
                                     eps_not_watched = all_eps - parseInt(anime['my_watched_episodes'][0])
